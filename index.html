@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEBULA UNIVERSE | Galactic Minecraft Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        nebula: {
+                            purple: '#8B5CF6',
+                            electric: '#6366F1',
+                            midnight: '#020617',
+                            glow: '#A855F7'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020617;
+            color: #f8fafc;
+            cursor: none !important;
+            overflow: hidden; 
+        }
+
+        *, *::before, *::after {
+            cursor: none !important;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .neon-shadow {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+        }
+
+        #stars-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%);
+        }
+
+        #custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 32px;
+            height: 32px;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
+        }
+
+        #main-slider {
+            display: flex;
+            width: 400%; 
+            transition: transform 0.8s cubic-bezier(0.85, 0, 0.15, 1);
+            height: 100vh;
+        }
+
+        .page-section {
+            width: 25%; 
+            height: 100vh;
+            overflow-y: auto;
+            padding-top: 100px; 
+            scrollbar-width: thin;
+            scrollbar-color: #8B5CF6 transparent;
+        }
+        
+        .page-section::-webkit-scrollbar { width: 6px; }
+        .page-section::-webkit-scrollbar-thumb { background: #8B5CF6; border-radius: 10px; }
+
+        .nav-link.active {
+            color: #8B5CF6;
+            position: relative;
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #8B5CF6;
+            box-shadow: 0 0 10px #8B5CF6;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        #live-feed::-webkit-scrollbar {
+            width: 4px;
+        }
+        #live-feed::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.3);
+            border-radius: 10px;
+        }
+
+        .support-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #8B5CF6;
+            transform: translateY(-5px);
+        }
+
+        .ecosystem-card {
+            transition: all 0.3s ease;
+        }
+        .ecosystem-card:hover {
+            background: rgba(139, 92, 246, 0.05);
+            border-color: rgba(139, 92, 246, 0.4);
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <canvas id="stars-canvas"></canvas>
+
+    <div id="custom-cursor">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C12 2 9 6 9 11C9 14.5 10.5 17 12 18C13.5 17 15 14.5 15 11C15 6 12 2 12 2Z" fill="url(#grad)" />
+            <defs>
+                <linearGradient id="grad" x1="12" y1="2" x2="12" y2="18">
+                    <stop stop-color="#8B5CF6" />
+                    <stop offset="1" stop-color="#6366F1" />
+                </linearGradient>
+            </defs>
+        </svg>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 w-full z-[100] glass border-b border-white/10">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('home', 0)">
+                <div class="w-10 h-10 bg-gradient-to-br from-nebula-purple to-nebula-electric rounded-xl flex items-center justify-center neon-shadow">
+                    <i class="fas fa-atom text-white"></i>
+                </div>
+                <span class="text-xl font-extrabold tracking-tighter neon-text uppercase">NEBULA<span class="text-nebula-electric">UNIVERSE</span></span>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-8 text-sm font-semibold tracking-wide">
+                <button id="nav-home" onclick="navigateTo('home', 0)" class="nav-link active hover:text-nebula-electric transition-colors">Home</button>
+                <button id="nav-store" onclick="navigateTo('store', 1)" class="nav-link hover:text-nebula-electric transition-colors">Store</button>
+                <button id="nav-docs" onclick="navigateTo('docs', 2)" class="nav-link hover:text-nebula-electric transition-colors">Docs</button>
+                <button id="nav-socials" onclick="navigateTo('socials', 3)" class="nav-link hover:text-nebula-electric transition-colors">Socials</button>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <button onclick="toggleCart()" class="relative glass w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 transition-all border border-white/10">
+                    <i class="fas fa-shopping-bag text-sm"></i>
+                    <span id="cart-count" class="cart-badge">0</span>
+                </button>
+                <button onclick="copyIP()" class="glass px-6 py-2 rounded-xl text-xs font-bold hover:bg-white/10 transition-all border border-nebula-purple/30">
+                    PLAY.NEBULA.COM
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Slide Container Wrapper -->
+    <main id="main-slider">
+        
+        <!-- HOME PAGE (Index 0) -->
+        <section id="page-home" class="page-section px-6">
+            <div class="container mx-auto text-center pt-24 pb-20">
+                <div class="inline-flex items-center gap-2 px-4 py-2 glass rounded-full text-xs font-bold mb-8 border border-nebula-electric/20 animate-bounce">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    SERVER ONLINE
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl font-black mb-6 tracking-tighter uppercase">
+                    Nebula <span class="text-transparent bg-clip-text bg-gradient-to-r from-nebula-purple via-nebula-electric to-cyan-400 neon-text">Universe</span>
+                </h1>
+                
+                <p class="text-slate-400 max-w-2xl mx-auto mb-12 text-sm md:text-base leading-relaxed">
+                    Masuki dimensi baru dalam bermain Minecraft. Ekosistem galaksi yang dirancang untuk performa tinggi, keamanan maksimal, dan komunitas yang hidup.
+                </p>
+
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-6 mb-20">
+                    <div class="glass p-1 rounded-2xl flex items-center gap-4 pr-6 border border-nebula-purple/20">
+                        <div class="bg-nebula-purple/20 px-4 py-3 rounded-xl font-mono font-bold text-nebula-electric">play.nebula.com</div>
+                        <button onclick="copyIP()" class="text-xs font-bold hover:text-nebula-electric transition-colors">COPY IP</button>
+                    </div>
+                </div>
+
+                <!-- Stats & Feed Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-20">
+                    <!-- Vote Section -->
+                    <div class="lg:col-span-2 glass p-8 rounded-[2.5rem] border border-white/5 text-left relative overflow-hidden flex flex-col justify-between">
+                        <div>
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                                <div>
+                                    <h3 class="text-2xl font-black uppercase tracking-tight">Top Voters <span class="text-nebula-purple">Januari</span></h3>
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Dukung kami setiap hari!</p>
+                                </div>
+                                <button onclick="window.open('#', '_blank')" class="group relative px-8 py-3 bg-nebula-purple rounded-2xl font-black text-xs transition-all hover:scale-105 active:scale-95 shadow-lg shadow-purple-500/20">
+                                    <span class="relative z-10 flex items-center gap-2 uppercase italic">Vote Now <i class="fas fa-bolt"></i></span>
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="flex items-center gap-4 p-4 glass rounded-2xl border border-white/10 bg-white/5">
+                                    <div class="w-8 h-8 bg-yellow-500/20 text-yellow-500 rounded-lg flex items-center justify-center font-black text-xs">#1</div>
+                                    <div class="flex-1 text-xs font-bold truncate">Xenon_Gamer</div>
+                                    <div class="text-nebula-electric font-black text-xs">124</div>
+                                </div>
+                                <div class="flex items-center gap-4 p-4 glass rounded-2xl border border-white/5">
+                                    <div class="w-8 h-8 bg-slate-500/20 text-slate-400 rounded-lg flex items-center justify-center font-black text-xs">#2</div>
+                                    <div class="flex-1 text-xs font-bold truncate">Lumine_Astris</div>
+                                    <div class="text-nebula-electric font-black text-xs">110</div>
+                                </div>
+                                <div class="flex items-center gap-4 p-4 glass rounded-2xl border border-white/5">
+                                    <div class="w-8 h-8 bg-orange-800/20 text-orange-600 rounded-lg flex items-center justify-center font-black text-xs">#3</div>
+                                    <div class="flex-1 text-xs font-bold truncate">VoidCaptain_</div>
+                                    <div class="text-nebula-electric font-black text-xs">98</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass p-4 rounded-2xl border border-nebula-purple/20 bg-nebula-purple/5 flex items-center gap-4 mt-8">
+                            <div class="text-2xl"><i class="fas fa-gift text-nebula-purple"></i></div>
+                            <div class="text-left text-xs text-slate-300">Dapatkan <span class="text-white font-bold italic">1x Vote Key & 1000 Coins</span> setiap vote!</div>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Live Feed -->
+                    <div class="glass p-8 rounded-[2.5rem] border border-white/5 text-left flex flex-col h-[400px]">
+                        <h3 class="text-xl font-black mb-6 uppercase tracking-tight flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> Activity
+                            </span>
+                        </h3>
+                        <div id="live-feed" class="space-y-3 overflow-y-auto pr-2 flex-1"></div>
+                    </div>
+                </div>
+
+                <!-- NEW: Why Choose Us Section -->
+                <div class="max-w-6xl mx-auto py-20">
+                    <div class="text-center mb-16">
+                        <h2 class="text-4xl font-black uppercase tracking-tighter mb-2 italic">Why Choose Us</h2>
+                        <p class="text-nebula-purple font-bold tracking-[0.3em] text-[10px] uppercase">The Ecosystem</p>
+                        <div class="w-12 h-1 bg-gradient-to-r from-nebula-purple to-nebula-electric mx-auto mt-4 rounded-full"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Cross-Play -->
+                        <div class="ecosystem-card glass p-8 rounded-[2rem] border border-white/5 text-left group">
+                            <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 text-nebula-electric text-xl group-hover:bg-nebula-electric group-hover:text-white transition-all">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <h4 class="text-lg font-black mb-3 uppercase italic">Cross-Play</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">Akses server dari Java Edition & Bedrock (PE/Console) tanpa hambatan sedikitpun.</p>
+                        </div>
+
+                        <!-- Ryzen Powered -->
+                        <div class="ecosystem-card glass p-8 rounded-[2rem] border border-white/5 text-left group">
+                            <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 text-red-500 text-xl group-hover:bg-red-500 group-hover:text-white transition-all">
+                                <i class="fas fa-microchip"></i>
+                            </div>
+                            <h4 class="text-lg font-black mb-3 uppercase italic">Ryzen Powered</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">Performa tanpa kompromi dengan hardware Ryzen 9 Dedicated untuk menjamin 20 TPS.</p>
+                        </div>
+
+                        <!-- Secure ID -->
+                        <div class="ecosystem-card glass p-8 rounded-[2rem] border border-white/5 text-left group">
+                            <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 text-emerald-500 text-xl group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h4 class="text-lg font-black mb-3 uppercase italic">Secure ID</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">Sistem login enkripsi tingkat tinggi untuk melindungi seluruh aset dan progressmu.</p>
+                        </div>
+
+                        <!-- Cosmic Economy -->
+                        <div class="ecosystem-card glass p-8 rounded-[2rem] border border-white/5 text-left group">
+                            <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 text-yellow-500 text-xl group-hover:bg-yellow-500 group-hover:text-white transition-all">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h4 class="text-lg font-black mb-3 uppercase italic">Cosmic Economy</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">Sistem pasar dinamis yang diatur oleh player dengan manajemen inflasi terkontrol.</p>
+                        </div>
+
+                        <!-- Modpack + -->
+                        <div class="ecosystem-card glass p-8 rounded-[2rem] border border-white/5 text-left group">
+                            <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 text-blue-400 text-xl group-hover:bg-blue-400 group-hover:text-white transition-all">
+                                <i class="fas fa-cubes"></i>
+                            </div>
+                            <h4 class="text-lg font-black mb-3 uppercase italic">Modpack +</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">Teknologi baru: install modpack dengan integrasi FPS Boost dalam satu klik melalui launcher.</p>
+                        </div>
+
+                        <!-- Tournaments -->
+                        <div class="ecosystem-card glass p-8 rounded-[2rem] border border-white/5 text-left group">
+                            <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 text-orange-500 text-xl group-hover:bg-orange-500 group-hover:text-white transition-all">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <h4 class="text-lg font-black mb-3 uppercase italic">Tournaments</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">Kompetisi PVP dan Building bulanan dengan hadiah uang tunai maupun transfer saldo e-wallet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Support Section -->
+                <div class="max-w-6xl mx-auto py-12 grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+                    <div class="glass p-10 rounded-[2.5rem] border border-white/5 flex flex-col justify-center">
+                        <h3 class="text-3xl font-black uppercase tracking-tight mb-2 italic text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">Support the Mission</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed max-w-sm">
+                            Mau support? Bisa dukung kami melalui platform di bawah untuk pengembangan server yang lebih baik.
+                        </p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <a href="https://saweria.co" target="_blank" class="support-card glass p-6 rounded-3xl border border-white/5 flex flex-col items-center justify-center transition-all duration-300">
+                            <div class="w-12 h-12 bg-[#faad14]/10 rounded-2xl flex items-center justify-center mb-4 text-[#faad14]">
+                                <i class="fas fa-heart text-xl"></i>
+                            </div>
+                            <span class="font-bold text-sm">SAWERIA</span>
+                        </a>
+                        <a href="https://sociabuzz.com" target="_blank" class="support-card glass p-6 rounded-3xl border border-white/5 flex flex-col items-center justify-center transition-all duration-300">
+                            <div class="w-12 h-12 bg-[#1DA1F2]/10 rounded-2xl flex items-center justify-center mb-4 text-[#1DA1F2]">
+                                <i class="fas fa-coffee text-xl"></i>
+                            </div>
+                            <span class="font-bold text-sm">SOCIABUZZ</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STORE PAGE -->
+        <section id="page-store" class="page-section px-6">
+            <div class="container mx-auto pt-12 pb-24 text-center">
+                <h2 class="text-5xl font-black mb-16 uppercase tracking-tighter">Galactic Store</h2>
+                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+            </div>
+        </section>
+
+        <!-- DOCS PAGE -->
+        <section id="page-docs" class="page-section px-6">
+            <div class="container mx-auto max-w-4xl pt-12 pb-24 text-center">
+                <h2 class="text-5xl font-black mb-16 uppercase tracking-tighter">Mission Manual</h2>
+                <div class="space-y-4 text-left">
+                    <div class="accordion-item glass rounded-3xl border border-white/5 overflow-hidden active">
+                        <button onclick="toggleAccordion(this)" class="w-full px-8 py-6 flex justify-between items-center hover:bg-white/5 transition-colors">
+                            <span class="font-bold text-lg flex items-center gap-4"><i class="fas fa-rocket text-nebula-electric"></i> Bagaimana cara bergabung?</span>
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="accordion-content">
+                            <div class="px-8 pb-8 text-slate-400 text-sm leading-relaxed">Gunakan IP <span class="text-white font-mono">play.nebula.com</span> di Minecraft Java Edition atau Bedrock versi 1.20.x ke atas.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SOCIALS PAGE -->
+        <section id="page-socials" class="page-section px-6">
+            <div class="container mx-auto text-center pt-12 pb-24">
+                <h2 class="text-5xl font-black mb-16 uppercase tracking-tighter">Mission Control</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                    <a href="#" class="group glass p-12 rounded-[3rem] border border-white/5 hover:border-nebula-electric transition-all"><i class="fab fa-discord text-5xl mb-6"></i><h4 class="font-bold tracking-widest uppercase text-xs">DISCORD</h4></a>
+                    <a href="#" class="group glass p-12 rounded-[3rem] border border-white/5 hover:border-pink-500 transition-all"><i class="fab fa-instagram text-5xl mb-6"></i><h4 class="font-bold tracking-widest uppercase text-xs">INSTAGRAM</h4></a>
+                    <a href="#" class="group glass p-12 rounded-[3rem] border border-white/5 hover:border-red-500 transition-all"><i class="fab fa-youtube text-5xl mb-6"></i><h4 class="font-bold tracking-widest uppercase text-xs">YOUTUBE</h4></a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- UI Components -->
+    <div id="cart-sidebar" class="fixed inset-y-0 right-0 w-full sm:w-[400px] glass shadow-2xl transform translate-x-full transition-transform duration-500 z-[200] flex flex-col border-l border-white/10">
+        <div class="p-8 flex justify-between items-center border-b border-white/10">
+            <h3 class="text-2xl font-black uppercase tracking-tighter">Cargo Bag</h3>
+            <button onclick="toggleCart()" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/5"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="cart-items" class="flex-1 overflow-y-auto p-8 space-y-4 no-scrollbar"></div>
+        <div class="p-8 glass border-t border-white/10">
+            <div class="flex justify-between items-center mb-6">
+                <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Total Price</span>
+                <span id="cart-total" class="text-2xl font-black text-nebula-electric">Rp 0</span>
+            </div>
+            <button onclick="checkoutWhatsApp()" class="w-full bg-gradient-to-r from-nebula-purple to-nebula-electric py-5 rounded-2xl font-bold hover:scale-[1.02] transition-transform shadow-xl shadow-purple-500/20">Checkout Orders</button>
+        </div>
+    </div>
+
+    <div id="notification" class="fixed bottom-10 left-1/2 -translate-x-1/2 glass px-8 py-4 rounded-2xl shadow-2xl z-[300] border border-nebula-purple/30 opacity-0 pointer-events-none transition-opacity duration-300">
+        <span id="notif-text" class="text-sm font-bold">Success!</span>
+    </div>
+
+    <script>
+        function navigateTo(pageId, index) {
+            document.getElementById('main-slider').style.transform = `translateX(-${index * 25}%)`;
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            document.getElementById('nav-' + pageId).classList.add('active');
+        }
+
+        const names = ["Steve", "Alex", "Zeron", "Nova", "Cosmos", "VoidWalker", "GalacticBoy", "NebulaKnight", "LunarSlayer"];
+        const actions = ["baru bergabung!", "menang Vote Key!", "naik Level 50!", "beli Rank!", "kill Dragon!", "Voted for server!", "Donated Rp 50k!"];
+
+        function updateLiveFeed() {
+            const feed = document.getElementById('live-feed');
+            const name = names[Math.floor(Math.random() * names.length)];
+            const action = actions[Math.floor(Math.random() * actions.length)];
+            
+            const item = document.createElement('div');
+            item.className = "flex items-center gap-3 p-3 glass rounded-xl border border-white/5 animate-[fadeIn_0.5s_ease-out]";
+            item.innerHTML = `
+                <div class="w-8 h-8 rounded-lg bg-nebula-purple/20 flex items-center justify-center font-bold text-[10px] text-nebula-purple">${name[0]}</div>
+                <div class="flex-1 text-[10px]"><span class="font-bold text-white">${name}</span> <span class="text-slate-400 font-medium">${action}</span></div>
+            `;
+            
+            feed.prepend(item);
+            if(feed.children.length > 20) feed.removeChild(feed.lastChild);
+        }
+        for(let i=0; i<8; i++) updateLiveFeed();
+        setInterval(updateLiveFeed, 3500);
+
+        const products = [
+            { id: 1, name: "NEBULA RANK", price: 50000, desc: "Akses kit eksklusif & mode terbang.", icon: "fa-crown", color: "from-yellow-400 to-orange-600" },
+            { id: 2, name: "GALAXY KEYS", price: 25000, desc: "10x Kunci peti harta karun.", icon: "fa-key", color: "from-nebula-electric to-blue-600" },
+            { id: 3, name: "COSMO COINS", price: 15000, desc: "50k Coins untuk belanja in-game.", icon: "fa-coins", color: "from-emerald-400 to-teal-600" }
+        ];
+
+        let cart = [];
+
+        function renderProducts() {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = products.map(p => `
+                <div class="group glass p-8 rounded-[2.5rem] border border-white/5 hover:border-nebula-purple/50 transition-all duration-500 hover:-translate-y-2 text-left">
+                    <div class="w-16 h-16 bg-gradient-to-br ${p.color} rounded-2xl mb-6 flex items-center justify-center text-3xl shadow-lg shadow-white/5"><i class="fas ${p.icon} text-white"></i></div>
+                    <h3 class="text-2xl font-bold mb-2 uppercase tracking-tight">${p.name}</h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">${p.desc}</p>
+                    <div class="text-3xl font-black text-white mb-8">Rp ${p.price.toLocaleString('id-ID')}</div>
+                    <button onclick="addToCart(${p.id})" class="w-full py-4 bg-white/5 hover:bg-nebula-purple rounded-2xl font-bold transition-all border border-white/10 uppercase tracking-widest text-[10px]">Add to Cargo</button>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(id) {
+            cart.push(products.find(p => p.id === id));
+            updateCart();
+            showNotification("Item ditambahkan ke Cargo!");
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+
+        function updateCart() {
+            document.getElementById('cart-count').innerText = cart.length;
+            const itemsEl = document.getElementById('cart-items');
+            const totalEl = document.getElementById('cart-total');
+            let total = 0;
+            itemsEl.innerHTML = cart.map((item, index) => {
+                total += item.price;
+                return `<div class="flex items-center gap-4 glass p-4 rounded-2xl border border-white/5">
+                    <div class="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-xs"><i class="fas ${item.icon}"></i></div>
+                    <div class="flex-1 text-xs font-bold truncate">${item.name}</div>
+                    <button onclick="removeFromCart(${index})" class="text-red-500 text-xs"><i class="fas fa-trash"></i></button>
+                </div>`;
+            }).join('');
+            totalEl.innerText = `Rp ${total.toLocaleString('id-ID')}`;
+        }
+
+        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('translate-x-full'); }
+        
+        function showNotification(text) {
+            const notif = document.getElementById('notification');
+            document.getElementById('notif-text').innerText = text;
+            notif.style.opacity = "1";
+            notif.style.pointerEvents = "auto";
+            setTimeout(() => {
+                notif.style.opacity = "0";
+                notif.style.pointerEvents = "none";
+            }, 3000);
+        }
+
+        function checkoutWhatsApp() {
+            if (cart.length === 0) return;
+            let msg = "*NEBULA ORDER*\n\n";
+            cart.forEach(i => msg += `🚀 ${i.name} - Rp ${i.price.toLocaleString('id-ID')}\n`);
+            msg += `\n*TOTAL: ${document.getElementById('cart-total').innerText}*`;
+            window.open(`https://wa.me/628123456789?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        const cursor = document.getElementById('custom-cursor');
+        let mouseX = 0, mouseY = 0, cursorX = 0, cursorY = 0;
+        document.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+        function animateCursor() {
+            cursorX += (mouseX - cursorX) * 0.15; cursorY += (mouseY - cursorY) * 0.15;
+            cursor.style.transform = `translate(${cursorX}px, ${cursorY}px) translate(-50%, -50%)`;
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        const canvas = document.getElementById('stars-canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        function resize() { 
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight; 
+            stars = []; 
+            for(let i=0; i<200; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, size: Math.random()*1.5, opacity: Math.random(), speed: Math.random()*0.02});
+        }
+        function draw() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            stars.forEach(s => {
+                ctx.fillStyle = `rgba(255,255,255,${s.opacity})`;
+                ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+                s.opacity += s.speed; if(s.opacity > 1 || s.opacity < 0) s.speed = -s.speed;
+            });
+            requestAnimationFrame(draw);
+        }
+        window.addEventListener('resize', resize);
+        resize(); draw();
+
+        function toggleAccordion(btn) { btn.parentElement.classList.toggle('active'); }
+        function copyIP() { navigator.clipboard.writeText("play.nebula.com").then(() => showNotification("IP disalin ke clipboard!")); }
+
+        window.onload = () => { renderProducts(); };
+    </script>
+</body>
+</html>
